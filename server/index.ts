@@ -61,6 +61,10 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Cria banco/tabelas automaticamente se não existirem
+  const { runMigrations } = await import("./migrate");
+  await runMigrations();
+
   const { registerRoutes } = await import("./routes");
   await registerRoutes(httpServer, app);
 
@@ -90,7 +94,7 @@ app.use((req, res, next) => {
 
   const port = parseInt(process.env.PORT || "5000", 10);
   const host =
-    process.env.HOST || (process.env.REPL_ID !== undefined ? "0.0.0.0" : "127.0.0.1");
+    process.env.HOST || (process.env.NODE_ENV === "production" ? "0.0.0.0" : "127.0.0.1");
   httpServer.listen(
     {
       port,
