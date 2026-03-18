@@ -1,0 +1,13 @@
+node_modules
+dist
+.DS_Store
+server/public
+vite.config.ts.*
+*.tar.gz
+*.zip
+*.log
+.env
+.npm-cache
+attached_assets/
+github_pat_*
+*.traineddata

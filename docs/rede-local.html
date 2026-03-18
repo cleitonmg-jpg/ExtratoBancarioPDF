@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ExtratoAI — Rodar em Rede Local (Windows)</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Segoe UI, Arial, sans-serif;
+      font-size: 15px;
+      color: #1a1a1a;
+      background: #f5f7fa;
+      padding: 40px 20px;
+    }
+    .page {
+      max-width: 820px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 16px rgba(0,0,0,.10);
+      padding: 48px 56px;
+    }
+    h1 {
+      font-size: 24px;
+      color: #1d3557;
+      border-bottom: 3px solid #1d3557;
+      padding-bottom: 12px;
+      margin-bottom: 32px;
+    }
+    h2 {
+      font-size: 16px;
+      color: #fff;
+      background: #1d3557;
+      padding: 8px 16px;
+      border-radius: 6px;
+      margin: 32px 0 14px;
+    }
+    h2 .num {
+      display: inline-block;
+      background: #e63946;
+      border-radius: 50%;
+      width: 24px; height: 24px;
+      line-height: 24px;
+      text-align: center;
+      font-size: 13px;
+      margin-right: 8px;
+    }
+    p { line-height: 1.7; margin-bottom: 10px; }
+    pre {
+      background: #1e2a3a;
+      color: #e0f0ff;
+      border-radius: 7px;
+      padding: 16px 20px;
+      font-family: Consolas, monospace;
+      font-size: 13.5px;
+      overflow-x: auto;
+      margin: 10px 0 14px;
+    }
+    code {
+      background: #eef2f7;
+      color: #c0392b;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-family: Consolas, monospace;
+      font-size: 13px;
+    }
+    blockquote {
+      border-left: 4px solid #457b9d;
+      background: #eef4fb;
+      padding: 10px 16px;
+      border-radius: 0 6px 6px 0;
+      margin: 10px 0;
+      color: #2c3e50;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+    th {
+      background: #1d3557;
+      color: #fff;
+      text-align: left;
+      padding: 9px 14px;
+      font-size: 13px;
+    }
+    td {
+      padding: 8px 14px;
+      border-bottom: 1px solid #e0e7ef;
+      font-size: 13.5px;
+      vertical-align: top;
+    }
+    tr:nth-child(even) td { background: #f3f7fb; }
+    .tag-admin {
+      display: inline-block;
+      background: #e63946;
+      color: #fff;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: bold;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .env-box {
+      background: #1e2a3a;
+      color: #a8ffb0;
+      border-radius: 7px;
+      padding: 16px 20px;
+      font-family: Consolas, monospace;
+      font-size: 13.5px;
+      margin: 10px 0;
+    }
+    .env-box .comment { color: #5f8fa8; }
+    footer {
+      margin-top: 40px;
+      font-size: 12px;
+      color: #999;
+      text-align: center;
+      border-top: 1px solid #e0e7ef;
+      padding-top: 16px;
+    }
+    @media print {
+      body { background: #fff; padding: 0; }
+      .page { box-shadow: none; border-radius: 0; padding: 24px 32px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <h1>ExtratoAI — Rodar em Rede Local (Windows)</h1>
+
+  <!-- PASSO 1 -->
+  <h2><span class="num">1</span> Descobrir o IP da máquina servidora</h2>
+  <p>Abra o <strong>Prompt de Comando</strong> ou <strong>PowerShell</strong> e execute:</p>
+  <pre>ipconfig</pre>
+  <p>Procure o adaptador ativo (Wi-Fi ou Ethernet) e anote o <strong>Endereço IPv4</strong>.</p>
+  <blockquote>Exemplo: <code>192.168.1.10</code></blockquote>
+
+  <!-- PASSO 2 -->
+  <h2><span class="num">2</span> Alterar o HOST no arquivo .env</h2>
+  <p>Abra o arquivo <code>.env</code> na raiz do projeto e mude a linha <code>HOST</code>:</p>
+  <div class="env-box">
+<span class="comment"># de:</span>
+HOST=127.0.0.1
+
+<span class="comment"># para:</span>
+HOST=0.0.0.0
+  </div>
+  <blockquote>
+    <code>127.0.0.1</code> = só a própria máquina.<br>
+    <code>0.0.0.0</code> = aceita conexões de qualquer IP da rede.
+  </blockquote>
+
+  <!-- PASSO 3 -->
+  <h2><span class="num">3</span> Liberar a porta 5000 no Firewall <span class="tag-admin">Administrador</span></h2>
+  <p>Abra o <strong>PowerShell como Administrador</strong> e execute:</p>
+  <pre>New-NetFirewallRule -DisplayName "ExtratoAI - Porta 5000" `
+  -Direction Inbound `
+  -Protocol TCP `
+  -LocalPort 5000 `
+  -Action Allow</pre>
+  <p>Para confirmar que a regra foi criada:</p>
+  <pre>Get-NetFirewallRule -DisplayName "ExtratoAI - Porta 5000"</pre>
+  <blockquote>
+    Se preferir o caminho gráfico: <strong>Painel de Controle → Windows Defender Firewall
+    → Configurações Avançadas → Regras de Entrada → Nova Regra → Porta → TCP 5000 → Permitir</strong>.
+  </blockquote>
+
+  <!-- PASSO 4 -->
+  <h2><span class="num">4</span> Verificar se o PostgreSQL está rodando</h2>
+  <p>No <strong>Prompt de Comando</strong>:</p>
+  <pre>sc query postgresql-x64-17</pre>
+  <blockquote>O nome do serviço pode variar: <code>postgresql-x64-16</code>, <code>postgresql</code> etc.<br>
+  Se o <code>STATE</code> não for <code>RUNNING</code>, inicie com:</blockquote>
+  <pre>net start postgresql-x64-17</pre>
+
+  <!-- PASSO 5 -->
+  <h2><span class="num">5</span> Iniciar a aplicação</h2>
+  <p>No <strong>Prompt de Comando</strong> dentro da pasta do projeto:</p>
+  <pre>cd e:\EXTRATOBANCARIOPDF
+npm run dev</pre>
+  <p>Você verá a confirmação:</p>
+  <pre>serving on http://0.0.0.0:5000</pre>
+
+  <!-- PASSO 6 -->
+  <h2><span class="num">6</span> Acessar de outro computador na rede</h2>
+  <p>Nos outros computadores, abra o navegador e acesse:</p>
+  <pre>http://192.168.1.10:5000</pre>
+  <blockquote>Substitua <code>192.168.1.10</code> pelo IP anotado no Passo 1.</blockquote>
+
+  <!-- .env final -->
+  <h2><span class="num">7</span> Resumo do .env para rede</h2>
+  <div class="env-box">
+PORT=5000
+HOST=0.0.0.0
+SESSION_SECRET=<span style="color:#ffd166">troque-por-string-segura</span>
+
+<span class="comment"># Banco de dados</span>
+DB_TYPE=postgres
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/extratoai
+  </div>
+
+  <!-- Tabela de observações -->
+  <h2><span class="num">!</span> Observações importantes</h2>
+  <table>
+    <tr><th>Item</th><th>Detalhe</th></tr>
+    <tr>
+      <td><strong>PostgreSQL</strong></td>
+      <td>Só precisa ser acessível pela própria máquina (localhost). Os outros PCs acessam apenas o servidor Node.</td>
+    </tr>
+    <tr>
+      <td><strong>Tipo de rede</strong></td>
+      <td>Se a rede for classificada como <strong>Pública</strong> no Windows, o Firewall pode bloquear mesmo com a regra. Mude para <strong>Privada</strong> em: Configurações → Rede → Propriedades.</td>
+    </tr>
+    <tr>
+      <td><strong>IP fixo</strong></td>
+      <td>Recomendado fixar o IP no roteador (DHCP reserva) para o endereço não mudar ao reiniciar.</td>
+    </tr>
+    <tr>
+      <td><strong>SESSION_SECRET</strong></td>
+      <td>Troque <code>change-me</code> por uma string aleatória longa antes de usar em rede.</td>
+    </tr>
+    <tr>
+      <td><strong>Parar o servidor</strong></td>
+      <td>No terminal onde o servidor está rodando, pressione <code>Ctrl + C</code>.</td>
+    </tr>
+  </table>
+
+  <footer>ExtratoAI · Guia de Rede Local · gerado em 2026-03-16</footer>
+</div>
+</body>
+</html>
