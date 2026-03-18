@@ -8,6 +8,9 @@ vite.config.ts.*
 *.log
 .env
 .npm-cache
-attached_assets/
 github_pat_*
 *.traineddata
+attached_assets/*.pdf
+attached_assets/*.PDF
+attached_assets/*.txt
+attached_assets/image_*
