@@ -32,7 +32,7 @@ export async function setupVite(server: Server, app: Express) {
   app.use(vite.middlewares);
 
   // Rota de captura (catch-all) para o ambiente de desenvolvimento
-  app.get("*", async (req, res, next) => {
+  app.get("(.*)", async (req, res, next) => {
     const url = req.originalUrl;
 
     try {
