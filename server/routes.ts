@@ -610,11 +610,10 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       } catch { /* ignora */ }
 
       try {
-        // pdf-parse: API correta — exporta função default
-        const pdfParseMod = await import("pdf-parse");
-        const pdfParseFn: (buf: Buffer) => Promise<{ text: string }> =
-          (pdfParseMod as any).default ?? (pdfParseMod as any);
-        const result = await pdfParseFn(req.file.buffer);
+        // pdf-parse v2: usa classe PDFParse({ data: buffer })
+        const { PDFParse } = await import("pdf-parse") as any;
+        const parser = new PDFParse({ data: req.file.buffer });
+        const result = await parser.getText();
         pdfParseText = result.text || "";
       } catch { /* ignora */ }
 
