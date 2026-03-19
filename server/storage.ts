@@ -63,10 +63,8 @@ export class DatabaseStorage implements IStorage {
       throw new Error("DATABASE_URL must be set to use DatabaseStorage.");
     }
     this.database = db;
-    this.sessionStore = new PostgresSessionStore({
-      conObject: { connectionString: process.env.DATABASE_URL },
-      createTableIfMissing: false,
-    });
+    // Usa MemoryStore para sessões (evita dependência do table.sql do connect-pg-simple em produção)
+    this.sessionStore = new MemoryStore({ checkPeriod: 24 * 60 * 60 * 1000 });
   }
 
   // ─── Statements ────────────────────────────────────────────────────────────
