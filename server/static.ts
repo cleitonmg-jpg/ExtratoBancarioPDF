@@ -12,8 +12,14 @@ export function serveStatic(app: Express) {
 
   app.use(express.static(distPath));
 
-  // fall through to index.html if the file doesn't exist
-  app.use("/{*path}", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+  // Rota de captura (catch-all) para o Single Page Application (SPA)
+  // Qualquer rota que não seja um arquivo estático ou da API devolverá o index.html
+  app.get("*", (req, res) => {
+    // Evita loop infinito se tentar carregar algo em /api que não existe
+    if (!req.path.startsWith("/api")) {
+      res.sendFile(path.resolve(distPath, "index.html"));
+    } else {
+      res.status(404).json({ message: "Rota da API não encontrada" });
+    }
   });
 }
