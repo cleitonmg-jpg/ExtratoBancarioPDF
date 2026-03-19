@@ -72,18 +72,26 @@ export function setupAuth(app: express.Express) {
   app.use(passport.session());
 
   passport.use(
-    new LocalStrategy(async (username, password, done) => {
+    new LocalStrategy({ passReqToCallback: true }, async (req, username, password, done) => {
       try {
         const user = await storage.getUserByUsername(username);
         if (!user || !(await comparePasswords(password, user.password))) {
           return done(null, false);
         }
         if (!user.isActive) return done(null, false);
-        // Check company active
+
         if (user.companyId) {
           const company = await storage.getCompany(user.companyId);
           if (company && !company.isActive) return done(null, false);
+
+          // Non-admin users must provide the correct CNPJ
+          if (user.role !== "admin") {
+            const cnpj = (req.body.cnpj || "").replace(/\D/g, "");
+            if (!cnpj) return done(null, false);
+            if (!company || company.cnpj !== cnpj) return done(null, false);
+          }
         }
+
         return done(null, user);
       } catch (err) {
         return done(err);

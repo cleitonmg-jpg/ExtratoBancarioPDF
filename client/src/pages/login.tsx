@@ -8,9 +8,20 @@ import { ShieldCheck, Loader2, Building2 } from "lucide-react";
 import { Link } from "wouter";
 import { useLocation } from "wouter";
 
+/** Format a raw digit string as XX.XXX.XXX/XXXX-XX */
+function formatCnpj(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 14);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
+  if (digits.length <= 8) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`;
+  if (digits.length <= 12) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`;
+  return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
+}
+
 export default function LoginPage() {
   const { user, loginMutation } = useAuth();
   const [, setLocation] = useLocation();
+  const [cnpj, setCnpj] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
@@ -20,9 +31,13 @@ export default function LoginPage() {
     }
   }, [user, setLocation]);
 
+  const handleCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCnpj(formatCnpj(e.target.value));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    loginMutation.mutate({ username, password });
+    loginMutation.mutate({ username, password, cnpj: cnpj.replace(/\D/g, "") });
   };
 
   return (
@@ -39,6 +54,18 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="cnpj">CNPJ da Empresa</Label>
+              <Input
+                id="cnpj"
+                data-testid="input-cnpj"
+                placeholder="00.000.000/0000-00"
+                value={cnpj}
+                onChange={handleCnpjChange}
+                className="rounded-xl"
+              />
+              <p className="text-xs text-muted-foreground">Administradores podem deixar em branco</p>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="username">Usuário</Label>
               <Input

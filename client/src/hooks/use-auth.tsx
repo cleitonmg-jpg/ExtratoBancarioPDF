@@ -1,14 +1,20 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useQuery, useMutation, type UseMutationResult } from "@tanstack/react-query";
-import { type User, type InsertUser } from "@shared/schema";
+import { type User } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+
+type LoginCredentials = {
+  username: string;
+  password: string;
+  cnpj?: string;
+};
 
 type AuthContextType = {
   user: User | null;
   isLoading: boolean;
   error: Error | null;
-  loginMutation: UseMutationResult<User, Error, InsertUser>;
+  loginMutation: UseMutationResult<User, Error, LoginCredentials>;
   logoutMutation: UseMutationResult<void, Error, void>;
 };
 
@@ -36,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const loginMutation = useMutation({
-    mutationFn: async (credentials: InsertUser) => {
+    mutationFn: async (credentials: LoginCredentials) => {
       const res = await apiRequest("POST", "/api/login", credentials);
       return await res.json();
     },

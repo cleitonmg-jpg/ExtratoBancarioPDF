@@ -1,5 +1,18 @@
 import { db } from "./db";
-import { bankAccounts, statements, users, companies, type InsertStatement, type Statement, type BankAccount, type InsertBankAccount, type User, type InsertUser, type Company, type InsertCompany } from "@shared/schema";
+import {
+  bankAccounts,
+  statements,
+  users,
+  companies,
+  type InsertStatement,
+  type Statement,
+  type BankAccount,
+  type InsertBankAccount,
+  type User,
+  type InsertUser,
+  type Company,
+  type InsertCompany,
+} from "@shared/schema";
 import { eq, desc, sql, and } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import session from "express-session";
@@ -17,7 +30,7 @@ export interface IStorage {
   updateStatement(id: string, data: any): Promise<Statement | undefined>;
   deleteStatement(id: string): Promise<void>;
 
-  // Bank accounts
+  // Bank Accounts
   getBankAccounts(companyId?: string | null): Promise<BankAccount[]>;
   getBankAccount(id: string): Promise<BankAccount | undefined>;
   findBankAccount(bankName: string, accountNumber: string, companyId?: string | null): Promise<BankAccount | undefined>;
@@ -61,7 +74,9 @@ export class DatabaseStorage implements IStorage {
     if (companyId === null || companyId === undefined) {
       return await this.database.select().from(statements).orderBy(desc(statements.createdAt));
     }
-    return await this.database.select().from(statements)
+    return await this.database
+      .select()
+      .from(statements)
       .where(eq(statements.companyId, companyId))
       .orderBy(desc(statements.createdAt));
   }
@@ -77,7 +92,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateStatement(id: string, data: any): Promise<Statement | undefined> {
-    const [s] = await this.database.update(statements).set({ data }).where(eq(statements.id, id)).returning();
+    const [s] = await this.database
+      .update(statements)
+      .set({ data })
+      .where(eq(statements.id, id))
+      .returning();
     return s;
   }
 
@@ -90,7 +109,10 @@ export class DatabaseStorage implements IStorage {
     if (companyId === null || companyId === undefined) {
       return await this.database.select().from(bankAccounts);
     }
-    return await this.database.select().from(bankAccounts).where(eq(bankAccounts.companyId, companyId));
+    return await this.database
+      .select()
+      .from(bankAccounts)
+      .where(eq(bankAccounts.companyId, companyId));
   }
 
   async getBankAccount(id: string): Promise<BankAccount | undefined> {
@@ -98,13 +120,20 @@ export class DatabaseStorage implements IStorage {
     return a;
   }
 
-  async findBankAccount(bankName: string, accountNumber: string, companyId?: string | null): Promise<BankAccount | undefined> {
+  async findBankAccount(
+    bankName: string,
+    accountNumber: string,
+    companyId?: string | null,
+  ): Promise<BankAccount | undefined> {
     const conditions = [
       sql`LOWER(${bankAccounts.bankName}) = LOWER(${bankName})`,
       sql`LOWER(${bankAccounts.accountNumber}) = LOWER(${accountNumber})`,
     ];
     if (companyId) conditions.push(eq(bankAccounts.companyId, companyId));
-    const [a] = await this.database.select().from(bankAccounts).where(and(...conditions));
+    const [a] = await this.database
+      .select()
+      .from(bankAccounts)
+      .where(and(...conditions));
     return a;
   }
 
@@ -130,12 +159,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUser(id: string, data: Partial<InsertUser>): Promise<User | undefined> {
-    const [u] = await this.database.update(users).set(data).where(eq(users.id, id)).returning();
+    const [u] = await this.database
+      .update(users)
+      .set(data)
+      .where(eq(users.id, id))
+      .returning();
     return u;
   }
 
   async getUsers(companyId: string): Promise<User[]> {
-    return await this.database.select().from(users).where(eq(users.companyId, companyId));
+    return await this.database
+      .select()
+      .from(users)
+      .where(eq(users.companyId, companyId));
   }
 
   // ─── Companies ─────────────────────────────────────────────────────────────
@@ -159,12 +195,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateCompany(id: string, data: Partial<InsertCompany>): Promise<Company | undefined> {
-    const [c] = await this.database.update(companies).set(data).where(eq(companies.id, id)).returning();
+    const [c] = await this.database
+      .update(companies)
+      .set(data)
+      .where(eq(companies.id, id))
+      .returning();
     return c;
   }
 
   async setCompanyActive(id: string, isActive: boolean): Promise<Company | undefined> {
-    const [c] = await this.database.update(companies).set({ isActive }).where(eq(companies.id, id)).returning();
+    const [c] = await this.database
+      .update(companies)
+      .set({ isActive })
+      .where(eq(companies.id, id))
+      .returning();
     return c;
   }
 }
@@ -232,7 +276,11 @@ export class MemoryStorage implements IStorage {
     return this.bankAccountsData.find((a) => a.id === id);
   }
 
-  async findBankAccount(bankName: string, accountNumber: string, companyId?: string | null): Promise<BankAccount | undefined> {
+  async findBankAccount(
+    bankName: string,
+    accountNumber: string,
+    companyId?: string | null,
+  ): Promise<BankAccount | undefined> {
     return this.bankAccountsData.find((a) => {
       const matchesBase =
         a.bankName?.toLowerCase() === bankName.toLowerCase() &&
@@ -270,10 +318,10 @@ export class MemoryStorage implements IStorage {
       id: randomUUID(),
       username: user.username,
       password: user.password,
-      name: (user as any).name ?? null,
-      role: (user as any).role ?? "user",
-      companyId: (user as any).companyId ?? null,
-      isActive: (user as any).isActive ?? true,
+      name: user.name ?? null,
+      role: user.role ?? "user",
+      companyId: user.companyId ?? null,
+      isActive: user.isActive ?? true,
       createdAt: new Date() as any,
     };
     this.usersData.push(row);
@@ -314,10 +362,10 @@ export class MemoryStorage implements IStorage {
       id: randomUUID(),
       cnpj: company.cnpj,
       name: company.name,
-      email: (company as any).email ?? null,
-      phone: (company as any).phone ?? null,
-      address: (company as any).address ?? null,
-      isActive: (company as any).isActive ?? true,
+      email: company.email ?? null,
+      phone: company.phone ?? null,
+      address: company.address ?? null,
+      isActive: company.isActive ?? true,
       createdAt: new Date() as any,
     };
     this.companiesData.push(row);
