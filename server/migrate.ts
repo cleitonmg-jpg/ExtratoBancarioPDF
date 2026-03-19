@@ -66,12 +66,20 @@ const MIGRATIONS = [
       );
     `,
   },
-  // Exemplo de migração futura:
-  // {
-  //   version: 2,
-  //   description: "Adicionar campo notes em statements",
-  //   sql: `ALTER TABLE statements ADD COLUMN IF NOT EXISTS notes TEXT;`,
-  // },
+  {
+    version: 2,
+    description: "Criar tabela de sessão para connect-pg-simple",
+    sql: `
+      CREATE TABLE IF NOT EXISTS "session" (
+        "sid" varchar NOT NULL COLLATE "default",
+        "sess" json NOT NULL,
+        "expire" timestamp(6) NOT NULL,
+        CONSTRAINT "session_pkey" PRIMARY KEY ("sid") DEFERRABLE INITIALLY DEFERRED
+      ) WITH (OIDS=FALSE);
+
+      CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire");
+    `,
+  },
 ];
 
 // ─── Garante que o banco de dados existe ──────────────────────────────────

@@ -65,7 +65,7 @@ export class DatabaseStorage implements IStorage {
     this.database = db;
     this.sessionStore = new PostgresSessionStore({
       conObject: { connectionString: process.env.DATABASE_URL },
-      createTableIfMissing: true,
+      createTableIfMissing: false,
     });
   }
 
