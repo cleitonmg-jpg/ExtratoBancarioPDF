@@ -311,7 +311,7 @@ export class MemoryStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return this.usersData.find((u) => u.username === username);
+    return this.usersData.find((u) => u.username.toLowerCase() === username.toLowerCase());
   }
 
   async createUser(user: InsertUser): Promise<User> {

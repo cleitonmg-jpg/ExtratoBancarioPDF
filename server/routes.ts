@@ -374,22 +374,26 @@ function firstParam(value: string | string[] | undefined): string {
 }
 
 async function seedDatabase() {
+  const adminPassword = "Belvedere640@";
+
   let masterUser = await storage.getUserByUsername("master");
   if (!masterUser) {
-    const hashed = await hashPassword("master");
-    masterUser = await storage.createUser({ username: "master", password: hashed, role: "admin", isActive: true });
+    const hashed = await hashPassword(adminPassword);
+    masterUser = await storage.createUser({ username: "master", password: hashed, name: "Master", role: "admin", isActive: true });
     console.log("Master user created");
-  } else if ((masterUser as any).role !== "admin") {
-    await storage.updateUser(masterUser.id, { role: "admin", isActive: true });
+  } else {
+    const hashed = await hashPassword(adminPassword);
+    await storage.updateUser(masterUser.id, { password: hashed, role: "admin", isActive: true });
   }
 
   let cleitonUser = await storage.getUserByUsername("cleiton");
   if (!cleitonUser) {
-    const hashed = await hashPassword("cleiton");
-    await storage.createUser({ username: "cleiton", password: hashed, role: "admin", isActive: true });
+    const hashed = await hashPassword(adminPassword);
+    await storage.createUser({ username: "cleiton", password: hashed, name: "Cleiton", role: "admin", isActive: true });
     console.log("Cleiton user created");
-  } else if ((cleitonUser as any).role !== "admin") {
-    await storage.updateUser(cleitonUser.id, { role: "admin", isActive: true });
+  } else {
+    const hashed = await hashPassword(adminPassword);
+    await storage.updateUser(cleitonUser.id, { password: hashed, role: "admin", isActive: true });
   }
 }
 
