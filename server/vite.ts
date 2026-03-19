@@ -31,8 +31,8 @@ export async function setupVite(server: Server, app: Express) {
 
   app.use(vite.middlewares);
 
-  // Rota de captura (catch-all) para o ambiente de desenvolvimento
-  app.get("(.*)", async (req, res, next) => {
+  // Rota de captura (catch-all) usando RegExp para o ambiente de desenvolvimento
+  app.get(/^(?!\/api).*/, async (req, res, next) => {
     const url = req.originalUrl;
 
     try {

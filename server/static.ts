@@ -12,9 +12,9 @@ export function serveStatic(app: Express) {
 
   app.use(express.static(distPath));
 
-  // Rota de captura (catch-all) para o Single Page Application (SPA)
-  // Qualquer rota que não seja um arquivo estático ou da API devolverá o index.html
-  app.get("(.*)", (req, res) => {
+  // Rota de captura (catch-all) usando RegExp para o Express 5 (SPA)
+  // Qualquer rota que não comece com /api e não seja arquivo estático devolve o index.html
+  app.get(/^(?!\/api).*/, (req, res) => {
     // Evita loop infinito se tentar carregar algo em /api que não existe
     if (!req.path.startsWith("/api")) {
       res.sendFile(path.resolve(distPath, "index.html"));
