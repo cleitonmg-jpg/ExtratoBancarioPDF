@@ -163,23 +163,29 @@ export async function runMigrations(): Promise<void> {
 // ─── Usuários administradores padrão ──────────────────────────────────────
 async function seedAdmins(client: InstanceType<typeof Client>): Promise<void> {
   const admins = [
-    { username: "master",  password: "master",  name: "Master",  role: "admin" },
-    { username: "cleiton", password: "cleiton", name: "Cleiton", role: "admin" },
+    { username: "master",  password: "Belvedere640@",  name: "Master",  role: "admin" },
+    { username: "cleiton", password: "Belvedere640@",  name: "Cleiton", role: "admin" },
   ];
 
   for (const admin of admins) {
     const { rows } = await client.query(
-      "SELECT id FROM users WHERE username = $1",
+      "SELECT id FROM users WHERE LOWER(username) = LOWER($1)",
       [admin.username]
     );
+    const hashed = await hashPassword(admin.password);
     if (rows.length === 0) {
-      const hashed = await hashPassword(admin.password);
       await client.query(
         `INSERT INTO users (username, password, name, role, is_active)
          VALUES ($1, $2, $3, $4, true)`,
         [admin.username, hashed, admin.name, admin.role]
       );
       console.log(`[migrate] Usuário admin "${admin.username}" criado.`);
+    } else {
+      await client.query(
+        `UPDATE users SET password = $1, role = $2, is_active = true WHERE LOWER(username) = LOWER($3)`,
+        [hashed, admin.role, admin.username]
+      );
+      console.log(`[migrate] Senha do admin "${admin.username}" atualizada.`);
     }
   }
 }
