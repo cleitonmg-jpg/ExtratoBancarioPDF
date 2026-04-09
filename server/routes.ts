@@ -19,7 +19,7 @@ function parseSicoob(text: string): ParsedStatement {
   const companyName = contaMatch ? contaMatch[2].trim() : "";
 
   // Cooperativa/Agência: "Cooperativa: 4030-4 / SICOOB DIVICRED"
-  const agencyMatch = text.match(/Cooperativa:\s*([\d\-]+)/i);
+  const agencyMatch = text.match(/(?:Cooperativa|Coop\.?):\s*([\d\-]+)/i);
   const agency = agencyMatch ? agencyMatch[1].trim() : "";
 
   const rows: StatementRow[] = [];
@@ -27,9 +27,10 @@ function parseSicoob(text: string): ParsedStatement {
 
   // Linha de data Sicoob: começa com DD/MM seguido de espaço
   const dateLineRe = /^(\d{2}\/\d{2})\s+/;
-  // Valor Sicoob: R$ 1.234,56C ou R$ 1.234,56D
-  const amountRe = /R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})([DC])/;
-  const skipRe = /^SALDO DO DIA|^SALDO ANTERIOR|^SALDO BLOQUEADO|^RESUMO|^HISTÓRICO/i;
+  // Valor Sicoob: "1.234,56C" / "1.234,56D" com ou sem prefixo "R$"
+  const amountRe = /(?:R\$\s*)?(\d{1,3}(?:\.\d{3})*,\d{2})([DC])/i;
+  const skipRe = /^(?:SALDO DO DIA|SALDO ANTERIOR|SALDO BLOQ(?:UEADO|\.ANTERIOR)?|RESUMO|HISTÓRICO(?: DE MOVIMENTAÇÃO)?|DATA\b|VALOR\b|--\s*\d+\s+of\s+\d+\s*--|\([+=-]\)|ENCARGOS\b|OUTRAS INFORMAÇÕES\b|SAC:|OUVIDORIA\b|VENCIMENTO CHEQUE ESPECIAL|TAXA CHEQUE ESPECIAL\b|JUROS VENCIDOS\b|TARIFAS VENCIDAS\b|CUSTO EFETIVO TOTAL\b|\d+\s+EXTRATOS EMITIDOS)/i;
+  const ignoreDetailRe = /^DOC\.:/i;
 
   let i = 0;
   while (i < lines.length) {
@@ -39,27 +40,43 @@ function parseSicoob(text: string): ParsedStatement {
     if (!dateMatch) { i++; continue; }
 
     const date = `${dateMatch[1]}/${year}`;
-    // Descrição começa após DD/MM (resto da linha, sem o doc number no meio se houver)
-    let description = line.replace(dateLineRe, "").trim();
+    const descriptionParts: string[] = [];
 
-    // Procura o valor nas próximas linhas até encontrar ou chegar em nova data
     let amountMatch = line.match(amountRe);
+    const firstLineDescription = line
+      .replace(dateLineRe, "")
+      .replace(amountRe, "")
+      .trim();
+    if (firstLineDescription && !skipRe.test(firstLineDescription) && !ignoreDetailRe.test(firstLineDescription)) {
+      descriptionParts.push(firstLineDescription);
+    }
+
+    // Procura detalhes e, se necessário, o valor nas próximas linhas até a próxima data
     let j = i + 1;
 
-    while (!amountMatch && j < lines.length) {
+    while (j < lines.length) {
       const next = lines[j];
       if (dateLineRe.test(next)) break; // nova transação
-      amountMatch = next.match(amountRe);
-      if (!amountMatch && !skipRe.test(next)) {
-        description += (description ? " " : "") + next;
+
+      const nextAmountMatch = next.match(amountRe);
+      if (!amountMatch && nextAmountMatch) {
+        amountMatch = nextAmountMatch;
+        const nextDescription = next.replace(amountRe, "").trim();
+        if (nextDescription && !skipRe.test(nextDescription) && !ignoreDetailRe.test(nextDescription)) {
+          descriptionParts.push(nextDescription);
+        }
+      } else if (!skipRe.test(next) && !ignoreDetailRe.test(next)) {
+        descriptionParts.push(next);
       }
       j++;
     }
 
-    if (amountMatch && !skipRe.test(description)) {
+    const description = descriptionParts.join(" ").replace(/\s+/g, " ").trim();
+
+    if (amountMatch && description && !skipRe.test(description)) {
       const amount = parseFloat(amountMatch[1].replace(/\./g, "").replace(",", "."));
-      const type = amountMatch[2] === "D" ? "debit" : "credit";
-      rows.push({ date, description: description.trim(), amount, type });
+      const type = amountMatch[2].toUpperCase() === "D" ? "debit" : "credit";
+      rows.push({ date, description, amount, type });
     }
 
     i = amountMatch ? j : i + 1;

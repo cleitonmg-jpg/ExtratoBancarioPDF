@@ -1,9 +1,9 @@
-$ErrorActionPreference = "Stop"
-
 param(
   [int]$Port = 5000,
-  [string]$Host = "127.0.0.1"
+  [string]$ListenHost = "127.0.0.1"
 )
+
+$ErrorActionPreference = "Stop"
 
 Set-Location $PSScriptRoot
 
@@ -18,7 +18,7 @@ if (-not (Test-Path ".env")) {
 }
 
 $env:PORT = "$Port"
-$env:HOST = $Host
+$env:HOST = $ListenHost
 
-Write-Host "Starting dev server on http://$Host`:$Port ..."
+Write-Host "Starting dev server on http://$ListenHost`:$Port ..."
 & npm.cmd run dev
